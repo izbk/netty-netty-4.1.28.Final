@@ -47,6 +47,7 @@ import java.util.concurrent.ConcurrentMap;
  * </pre>
  * Be aware that this class is marked as {@link Sharable} and so the implementation must be safe to be re-used.
  *
+ *  抽象Channel初始化器，通常使用匿名内部子类
  * @param <C>   A sub-type of {@link Channel}
  */
 @Sharable
