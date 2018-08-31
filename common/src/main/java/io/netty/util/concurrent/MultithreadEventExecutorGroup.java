@@ -64,7 +64,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
 
     /**
      * Create a new instance.
-     *
+     * 此构造方法是NioEventLoopGroup的核心代码
      * @param nThreads          the number of threads that will be used by this instance.
      * @param executor          the Executor to use, or {@code null} if the default should be used.
      * @param chooserFactory    the {@link EventExecutorChooserFactory} to use.
@@ -75,11 +75,12 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         if (nThreads <= 0) {
             throw new IllegalArgumentException(String.format("nThreads: %d (expected: > 0)", nThreads));
         }
-
+        // 初始化executor
         if (executor == null) {
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
+        // 初始化EventExecutor
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {
@@ -112,6 +113,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        // 生成选择器对象
         chooser = chooserFactory.newChooser(children);
 
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {

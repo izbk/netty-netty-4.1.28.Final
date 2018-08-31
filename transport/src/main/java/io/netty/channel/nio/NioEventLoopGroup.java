@@ -32,6 +32,26 @@ import java.util.concurrent.ThreadFactory;
 
 /**
  * {@link MultithreadEventLoopGroup} implementations which is used for NIO {@link Selector} based {@link Channel}s.
+ * 服务端启动代码：
+ * EventLoopGroup bossGroup = new NioEventLoopGroup();
+ *  EventLoopGroup workerGroup = new NioEventLoopGroup();
+ * 实际上就是2个线程池，boss用于监听客户端的连接，worker处理网络io，或者执行系统task等
+ * 用于接收客户端请求的线程池职责如下：
+ * 1）接收客户端tcp请求，初始化Channel参数。
+ * 2）将链路状态变更事件通知给ChannelPipeline。
+ * 用于处理io操作的Reactor线程池职责如下：
+ * 1）异步读取通信端的数据，发送读事件到ChannelPipeline;
+ * 2）异步发送消息到通信对端，调用ChannelPipeline的消息发送接口；
+ * 3）执行系统调用Task；
+ * 4）执行定时任务Task，例如链路空闲状态监测定时任务；
+ * 最佳实践
+ *
+ * Netty的多线程编程最佳实践如下。
+ * （1）创建两个NioEventLoopGroup，用于逻辑隔离NIO Acceptor和NIO I/O线程。
+ * （2）尽量不要在ChannelHandler中启动用户线程（解码后用于将POJO消息派发到后端业务线程的除外）。
+ * （3）解码要放在NIO线程调用的解码Handler中进行，不要切换到用户线程中完成消息的解码。
+ * （4）如果业务逻辑操作非常简单，没有复杂的业务逻辑计算，没有可能会导致线程被阻塞的磁盘操作、数据库操作、网路操作等，可以直接在NIO线程上完成业务逻辑编排，不需要切换到用户线程。
+ * （5）如果业务逻辑处理复杂，不要在NIO线程上完成，建议将解码后的POJO消息封装成Task，派发到业务线程池中由业务线程执行，以保证NIO线程尽快被释放，处理其他的I/O操作。
  */
 public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 

@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Default implementation which uses simple round-robin to choose next {@link EventExecutor}.
+ *  默认的EventExecutor的选择工厂，其内部有两种选择器， 一个是基于位运算，一个是基于普通的轮询
  */
 @UnstableApi
 public final class DefaultEventExecutorChooserFactory implements EventExecutorChooserFactory {
@@ -43,6 +44,9 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
         return (val & -val) == val;
     }
 
+    /**
+     * 位运算选择器
+     */
     private static final class PowerOfTwoEventExecutorChooser implements EventExecutorChooser {
         private final AtomicInteger idx = new AtomicInteger();
         private final EventExecutor[] executors;
@@ -57,6 +61,9 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
         }
     }
 
+    /**
+     * 普通轮询的选择器
+     */
     private static final class GenericEventExecutorChooser implements EventExecutorChooser {
         private final AtomicInteger idx = new AtomicInteger();
         private final EventExecutor[] executors;
