@@ -41,11 +41,15 @@ import java.util.Map;
 /**
  * A {@link io.netty.channel.socket.ServerSocketChannel} implementation which uses
  * NIO selector based implementation to accept new connections.
+ * 1、NioServerSocketChannel对象内部绑定了Java NIO创建的ServerSocketChannel对象；
+ * 2、Netty中，每个channel都有一个unsafe对象，此对象封装了Java NIO底层channel的操作细节；
+ * 3、Netty中，每个channel都有一个pipeline对象，此对象就是一个双向链表；
  */
 public class NioServerSocketChannel extends AbstractNioMessageChannel
                              implements io.netty.channel.socket.ServerSocketChannel {
 
     private static final ChannelMetadata METADATA = new ChannelMetadata(false, 16);
+    // 使用默认的多路复用器辅助类
     private static final SelectorProvider DEFAULT_SELECTOR_PROVIDER = SelectorProvider.provider();
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(NioServerSocketChannel.class);

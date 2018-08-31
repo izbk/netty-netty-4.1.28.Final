@@ -264,6 +264,13 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
      * Create a new {@link Channel} and bind it.
      */
     public ChannelFuture bind(SocketAddress localAddress) {
+        // 验证group和channelFactory不为空
+        /**
+         * 由此可知
+         * 1） 服务端程序必须要设置boss线程组 以及 worker线程组，分别用于Acceptor 以及 I/O操作；
+         * 2）必须通过Bootstrap的channel()来指定通道类型，用来生成相应的通道（ServerSocketChannel或SocketChannel）；
+         * 3） 因为是服务端程序，所以必须设置ChildHandler，来指定业务处理器，否则没有业务处理的服务器是没有意义的；
+         */
         validate();
         if (localAddress == null) {
             throw new NullPointerException("localAddress");
@@ -310,7 +317,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
+            // (1) 调用工厂方法，生成channel实例
             channel = channelFactory.newChannel();
+            // (2) 初始化通道信息
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {

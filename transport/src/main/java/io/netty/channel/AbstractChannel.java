@@ -80,6 +80,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      */
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
+        // 给channel生成一个新的id
         id = newId();
         // 初始化unsafe，这里的Unsafe并非是jdk中底层Unsafe类，用来负责底层的connect、register、read和write等操作。
         unsafe = newUnsafe();
@@ -116,6 +117,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
     /**
      * Returns a new {@link DefaultChannelPipeline} instance.
+     * 创建默认的ChannelPipeline
      */
     protected DefaultChannelPipeline newChannelPipeline() {
         return new DefaultChannelPipeline(this);
