@@ -31,6 +31,8 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#bind(ChannelHandlerContext, SocketAddress, ChannelPromise)} method
      * called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
+     * 请求绑定到给定的SocketAddress，并在操作完成后通知ChannelFuture，原因可能是操作成功，也可能是错误。
+     * 这将导致在Channel的ChannelPipeline中包含的下一个ChannelOutboundHandler的bind(ChannelHandlerContext, SocketAddress, ChannelPromise)方法被调用。
      */
     ChannelFuture bind(SocketAddress localAddress);
 
@@ -46,6 +48,7 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#connect(ChannelHandlerContext, SocketAddress, SocketAddress, ChannelPromise)}
      * method called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
+     * 请求连接到给定的SocketAddress，并在操作完成后通知ChannelFuture，原因可能是操作成功，也可能是错误。
      */
     ChannelFuture connect(SocketAddress remoteAddress);
 
@@ -69,6 +72,7 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#disconnect(ChannelHandlerContext, ChannelPromise)}
      * method called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
+     * 请求从远程对等点断开连接，并在操作完成后通知ChannelFuture，原因可能是操作成功，也可能是错误。
      */
     ChannelFuture disconnect();
 
@@ -83,6 +87,7 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#close(ChannelHandlerContext, ChannelPromise)}
      * method called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
+     * 请求关闭通道，并在操作完成后通知ChannelFuture，原因可能是操作成功，也可能是错误。
      */
     ChannelFuture close();
 
@@ -95,7 +100,7 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#deregister(ChannelHandlerContext, ChannelPromise)}
      * method called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
-     *
+     *请求注销之前分配给EventExecutor的事件执行器，并在操作完成后通知ChannelFuture，原因可能是操作成功，也可能是错误。
      */
     ChannelFuture deregister();
 
@@ -197,6 +202,8 @@ public interface ChannelOutboundInvoker {
      * {@link ChannelOutboundHandler#read(ChannelHandlerContext)}
      * method called of the next {@link ChannelOutboundHandler} contained in the {@link ChannelPipeline} of the
      * {@link Channel}.
+     * 请求将数据从通道读取到第一个入站缓冲区，触发ChannelInboundHandler。如果数据被读取，将触发channelReadComplete事件，
+     * 以便处理程序可以决定继续读取。如果已经有一个挂起的读操作，这个方法什么也不做。
      */
     ChannelOutboundInvoker read();
 
@@ -204,6 +211,8 @@ public interface ChannelOutboundInvoker {
      * Request to write a message via this {@link ChannelHandlerContext} through the {@link ChannelPipeline}.
      * This method will not request to actual flush, so be sure to call {@link #flush()}
      * once you want to request to flush all pending data to the actual transport.
+     * 请求通过ChannelHandlerContext通过ChannelPipeline编写消息。
+     * 此方法不会请求实际刷新，因此一旦您想要请求将所有未决数据真正刷新传输，请务必调用flush()。
      */
     ChannelFuture write(Object msg);
 
@@ -216,11 +225,13 @@ public interface ChannelOutboundInvoker {
 
     /**
      * Request to flush all pending messages via this ChannelOutboundInvoker.
+     * 请求通过这个ChannelOutboundInvoker刷新所有挂起的消息
      */
     ChannelOutboundInvoker flush();
 
     /**
      * Shortcut for call {@link #write(Object, ChannelPromise)} and {@link #flush()}.
+     * 快捷调用write(Object, ChannelPromise)和flush()。
      */
     ChannelFuture writeAndFlush(Object msg, ChannelPromise promise);
 
@@ -243,6 +254,9 @@ public interface ChannelOutboundInvoker {
      * Create a new {@link ChannelFuture} which is marked as succeeded already. So {@link ChannelFuture#isSuccess()}
      * will return {@code true}. All {@link FutureListener} added to it will be notified directly. Also
      * every call of blocking methods will just return without blocking.
+     * 创建一个被标记为已成功的ChannelFuture。所以isSuccess()将返回true。
+     * 所有添加到其中的FutureListener将被直接通知。也每次调用阻塞方法都会返回，而不会阻塞。
+     *
      */
     ChannelFuture newSucceededFuture();
 

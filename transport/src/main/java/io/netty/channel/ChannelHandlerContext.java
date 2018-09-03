@@ -28,7 +28,8 @@ import java.nio.channels.Channels;
  * Enables a {@link ChannelHandler} to interact with its {@link ChannelPipeline}
  * and other handlers. Among other things a handler can notify the next {@link ChannelHandler} in the
  * {@link ChannelPipeline} as well as modify the {@link ChannelPipeline} it belongs to dynamically.
- *
+ *允许ChannelHandler与它的ChannelPipeline和其他处理程序交互。处理程序可以通知ChannelPipeline中的
+ * 下一个ChannelHandler，并动态修改它所属的ChannelPipeline。
  * <h3>Notify</h3>
  *
  * You can notify the closest handler in the same {@link ChannelPipeline} by calling one of the various methods
@@ -126,11 +127,13 @@ public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvok
 
     /**
      * Return the {@link Channel} which is bound to the {@link ChannelHandlerContext}.
+     * 返回绑定到ChannelHandlerContext的通道。
      */
     Channel channel();
 
     /**
      * Returns the {@link EventExecutor} which is used to execute an arbitrary task.
+     * 返回用于执行任意任务的EventExecutor
      */
     EventExecutor executor();
 
@@ -138,6 +141,7 @@ public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvok
      * The unique name of the {@link ChannelHandlerContext}.The name was used when then {@link ChannelHandler}
      * was added to the {@link ChannelPipeline}. This name can also be used to access the registered
      * {@link ChannelHandler} from the {@link ChannelPipeline}.
+     * ChannelHandlerContext的唯一名称。当ChannelHandler被添加到ChannelPipeline时使用了这个名字。
      */
     String name();
 
@@ -188,11 +192,13 @@ public interface ChannelHandlerContext extends AttributeMap, ChannelInboundInvok
 
     /**
      * Return the assigned {@link ChannelPipeline}
+     * 返回指定ChannelPipeline
      */
     ChannelPipeline pipeline();
 
     /**
      * Return the assigned {@link ByteBufAllocator} which will be used to allocate {@link ByteBuf}s.
+     * 返回将用于分配ByteBuf的ByteBufAllocator。
      */
     ByteBufAllocator alloc();
 

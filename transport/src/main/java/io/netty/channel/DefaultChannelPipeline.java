@@ -43,6 +43,49 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
  * ChannelPipeline默认实现
+ * 1、channel初始化时，会同时创建一个与之对应的pipeline；
+ * 2、此pipeline本质上是一个handler处理器双向链表， 用于将处理inbound及outbound过程的handler都串联起来；
+ * 3、在netty中，对于I/O处理分为两种流向，对于获取外部数据资源进行处理的，都是对应inbound，比如read等，
+ * 而对于向外部发送数据资源的，都对于outbound，比如connect及write等。
+ * netty官网图  http://netty.io/4.1/api/io/netty/channel/ChannelPipeline.html
+ *                                                  I/O Request
+ *                                             via Channel or
+ *                                         ChannelHandlerContext
+ *                                                       |
+ *   +---------------------------------------------------+---------------+
+ *   |                           ChannelPipeline         |               |
+ *   |                                                  \|/              |
+ *   |    +---------------------+            +-----------+----------+    |
+ *   |    | Inbound Handler  N  |            | Outbound Handler  1  |    |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |              /|\                                  |               |
+ *   |               |                                  \|/              |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |    | Inbound Handler N-1 |            | Outbound Handler  2  |    |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |              /|\                                  .               |
+ *   |               .                                   .               |
+ *   | ChannelHandlerContext.fireIN_EVT() ChannelHandlerContext.OUT_EVT()|
+ *   |        [ method call]                       [method call]         |
+ *   |               .                                   .               |
+ *   |               .                                  \|/              |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |    | Inbound Handler  2  |            | Outbound Handler M-1 |    |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |              /|\                                  |               |
+ *   |               |                                  \|/              |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |    | Inbound Handler  1  |            | Outbound Handler  M  |    |
+ *   |    +----------+----------+            +-----------+----------+    |
+ *   |              /|\                                  |               |
+ *   +---------------+-----------------------------------+---------------+
+ *                   |                                  \|/
+ *   +---------------+-----------------------------------+---------------+
+ *   |               |                                   |               |
+ *   |       [ Socket.read() ]                    [ Socket.write() ]     |
+ *   |                                                                   |
+ *   |  Netty Internal I/O Threads (Transport Implementation)            |
+ *   +-------------------------------------------------------------------+
  */
 public class DefaultChannelPipeline implements ChannelPipeline {
 
@@ -90,7 +133,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
      */
     private boolean registered;
 
+    /**
+     * 1、每个channel初始化时，都会创建一个与之对应的pipeline；
+     * 2、此pipeline内部就是一个双向链表；
+     * 3、双向链表的头结点是处理outbound过程的handler，尾节点是处理inbound过程的handler；
+     * 4、双向链表的结点同时还是handler上下文对象；
+     * @param channel
+     */
     protected DefaultChannelPipeline(Channel channel) {
+        // 通道绑定channel对象
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
@@ -210,8 +261,11 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         synchronized (this) {
             checkMultiplicity(handler);
 
+            // newContext方法的作用就是对传入的handler进行包装，最后返回一个绑定了handler的context对象
             newCtx = newContext(group, filterName(name, handler), handler);
 
+            // headContext --->newCtx--->tailContext
+            // headContext <---newCtx<---tailContext
             addLast0(newCtx);
 
             // If the registered is false it means that the channel was not registered on an eventloop yet.
@@ -1440,7 +1494,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         @Override
         public void channelReadComplete(ChannelHandlerContext ctx) throws Exception {
             ctx.fireChannelReadComplete();
-
+            // 自动读取
             readIfIsAutoRead();
         }
 
