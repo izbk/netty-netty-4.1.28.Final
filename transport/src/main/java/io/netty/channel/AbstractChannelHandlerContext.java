@@ -35,10 +35,14 @@ import io.netty.util.internal.logging.InternalLoggerFactory;
 import java.net.SocketAddress;
 import java.util.concurrent.atomic.AtomicIntegerFieldUpdater;
 
+/**
+ * ChannelHandlerContext接口的抽象实现
+ */
 abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         implements ChannelHandlerContext, ResourceLeakHint {
 
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(AbstractChannelHandlerContext.class);
+    // Context形成双向链表，next和prev分别是后继节点和前驱节点
     volatile AbstractChannelHandlerContext next;
     volatile AbstractChannelHandlerContext prev;
 
@@ -63,10 +67,14 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
      */
     private static final int INIT = 0;
 
+    // 对应处理器为InboundHandler
     private final boolean inbound;
+    // 对应处理器为OutboundHandler
     private final boolean outbound;
     private final DefaultChannelPipeline pipeline;
+    // Context的名称
     private final String name;
+    // 事件顺序标记
     private final boolean ordered;
 
     // Will be set to null if no child executor should be used, otherwise it will be set to the
@@ -91,6 +99,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         this.inbound = inbound;
         this.outbound = outbound;
         // Its ordered if its driven by the EventLoop or the given Executor is an instanceof OrderedEventExecutor.
+        // 只有执行线程为空或者标记为OrderedEventExecutor才是顺序的
         ordered = executor == null || executor instanceof OrderedEventExecutor;
     }
 
@@ -345,8 +354,10 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
         final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
         EventExecutor executor = next.executor();
         if (executor.inEventLoop()) {
+            // 使用当前线程执行用户自定义处理
             next.invokeChannelRead(m);
         } else {
+            // 使用用户自定义线程执行处理过程
             executor.execute(new Runnable() {
                 @Override
                 public void run() {
@@ -934,7 +945,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     private AbstractChannelHandlerContext findContextInbound() {
         AbstractChannelHandlerContext ctx = this;
         do {
-            ctx = ctx.next;
+            ctx = ctx.next;// 入站事件向后查找
         } while (!ctx.inbound);
         return ctx;
     }
@@ -942,7 +953,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     private AbstractChannelHandlerContext findContextOutbound() {
         AbstractChannelHandlerContext ctx = this;
         do {
-            ctx = ctx.prev;
+            ctx = ctx.prev;// 出站事件向前查找
         } while (!ctx.outbound);
         return ctx;
     }
@@ -984,6 +995,8 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
     private boolean invokeHandler() {
         // Store in local variable to reduce volatile reads.
         int handlerState = this.handlerState;
+        // 当一个处理器还没有调用HandlerAdded方法时，只有处理器的执行线程是非顺序线程池的实例才能执行业务处理逻辑；
+        // 否则必须等待已调用handlerAdded方法，才能处理业务逻辑。
         return handlerState == ADD_COMPLETE || (!ordered && handlerState == ADD_PENDING);
     }
 
