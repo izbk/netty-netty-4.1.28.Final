@@ -12,6 +12,7 @@
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
  * License for the specific language governing permissions and limitations
  * under the License.
+ *
  */
 package io.netty.util.concurrent;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * The result of an asynchronous operation.
+ * 扩展JDK的Future接口，返回异步操作的结果。
  */
 @SuppressWarnings("ClassNameSameAsAncestorName")
 public interface Future<V> extends java.util.concurrent.Future<V> {
@@ -28,11 +30,13 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
     /**
      * Returns {@code true} if and only if the I/O operation was completed
      * successfully.
+     * 当且仅当I/O操作成功完成时返回true。
      */
     boolean isSuccess();
 
     /**
      * returns {@code true} if and only if the operation can be cancelled via {@link #cancel(boolean)}.
+     * 当且仅当操作可以通过cancel(布尔值)取消时返回true。
      */
     boolean isCancellable();
 
@@ -89,6 +93,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
     /**
      * Waits for this future until it is done, and rethrows the cause of the failure if this future
      * failed.
+     * 这个方法会捕获InterruptedException并默默抛弃
      */
     Future<V> syncUninterruptibly();
 
@@ -104,6 +109,7 @@ public interface Future<V> extends java.util.concurrent.Future<V> {
      * Waits for this future to be completed without
      * interruption.  This method catches an {@link InterruptedException} and
      * discards it silently.
+     * 这个方法会捕获InterruptedException并默默抛弃
      */
     Future<V> awaitUninterruptibly();
 

@@ -20,6 +20,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * A skeletal {@link Future} implementation which represents a {@link Future} which has been completed already.
+ * 一个框架Future实现，它代表一个已经完成的Future。
+ * Complete表示操作已完成，所以CompleteFuture表示一个异步操作已完成的结果，由此可推知：该类的实例在异步操作完成时创建，
+ * 返回给用户，用户则使用addListener()方法定义一个异步操作。
  */
 public abstract class CompleteFuture<V> extends AbstractFuture<V> {
 
@@ -46,6 +49,7 @@ public abstract class CompleteFuture<V> extends AbstractFuture<V> {
         if (listener == null) {
             throw new NullPointerException("listener");
         }
+        // 由于这是一个已完成的Future，所以立即通知Listener执行
         DefaultPromise.notifyListener(executor(), this, listener);
         return this;
     }

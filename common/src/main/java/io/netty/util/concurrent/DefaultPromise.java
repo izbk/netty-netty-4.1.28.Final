@@ -34,9 +34,11 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
     private static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultPromise.class);
     private static final InternalLogger rejectedExecutionLogger =
             InternalLoggerFactory.getInstance(DefaultPromise.class.getName() + ".rejectedExecution");
+    // 可以嵌套的Listener的最大层数，可见最大值为8
     private static final int MAX_LISTENER_STACK_DEPTH = Math.min(8,
             SystemPropertyUtil.getInt("io.netty.defaultPromise.maxListenerStackDepth", 8));
     @SuppressWarnings("rawtypes")
+    // result字段使用RESULT_UPDATER更新
     private static final AtomicReferenceFieldUpdater<DefaultPromise, Object> RESULT_UPDATER =
             AtomicReferenceFieldUpdater.newUpdater(DefaultPromise.class, Object.class, "result");
     private static final Object SUCCESS = new Object();
@@ -91,6 +93,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
     @Override
     public Promise<V> setSuccess(V result) {
         if (setSuccess0(result)) {
+            // 可以设置结果说明异步操作已完成，故通知监听者
             notifyListeners();
             return this;
         }
@@ -155,10 +158,12 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
         checkNotNull(listener, "listener");
 
         synchronized (this) {
+            // 保证多线程情况下只有一个线程执行添加操作
             addListener0(listener);
         }
 
         if (isDone()) {
+            // 异步操作已经完成通知所有监听者
             notifyListeners();
         }
 
@@ -224,6 +229,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
 
         checkDeadLock();
 
+        // 同步使修改waiters的线程只有一个
         synchronized (this) {
             while (!isDone()) {
                 incWaiters();
@@ -391,6 +397,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
 
     protected void checkDeadLock() {
         EventExecutor e = executor();
+        // 不能在同一个线程中调用await()相关的方法
         if (e != null && e.inEventLoop()) {
             throw new BlockingOperationException(toString());
         }
@@ -415,6 +422,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
 
     private void notifyListeners() {
         EventExecutor executor = executor();
+        //执行线程为当前线程
         if (executor.inEventLoop()) {
             final InternalThreadLocalMap threadLocals = InternalThreadLocalMap.get();
             final int stackDepth = threadLocals.futureListenerStackDepth();
@@ -429,6 +437,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
             }
         }
 
+        // 外部线程则提交任务给执行线程
         safeExecute(executor, new Runnable() {
             @Override
             public void run() {
@@ -518,8 +527,10 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
 
     private void addListener0(GenericFutureListener<? extends Future<? super V>> listener) {
         if (listeners == null) {
+            // 只有一个listener
             listeners = listener;
         } else if (listeners instanceof DefaultFutureListeners) {
+            // 大于两个listener
             ((DefaultFutureListeners) listeners).add(listener);
         } else {
             listeners = new DefaultFutureListeners((GenericFutureListener<?>) listeners, listener);
@@ -535,6 +546,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
     }
 
     private boolean setSuccess0(V result) {
+        // Result为空设置为Signal对象Success
         return setValue0(result == null ? SUCCESS : result);
     }
 
@@ -543,8 +555,10 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
     }
 
     private boolean setValue0(Object objResult) {
+        // 只有结果为null或者UNCANCELLABLE时才可设置且只可以设置一次
         if (RESULT_UPDATER.compareAndSet(this, null, objResult) ||
             RESULT_UPDATER.compareAndSet(this, UNCANCELLABLE, objResult)) {
+            // 通知等待的线程
             checkNotifyWaiters();
             return true;
         }

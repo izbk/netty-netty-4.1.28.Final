@@ -41,22 +41,22 @@ import java.util.concurrent.TimeUnit;
  * failure.  Please note that even failure and cancellation belong to the
  * completed state.
  * <pre>
- *                                      +---------------------------+
- *                                      | Completed successfully    |
- *                                      +---------------------------+
- *                                 +---->      isDone() = true      |
- * +--------------------------+    |    |   isSuccess() = true      |
- * |        Uncompleted       |    |    +===========================+
- * +--------------------------+    |    | Completed with failure    |
- * |      isDone() = false    |    |    +---------------------------+
- * |   isSuccess() = false    |----+---->      isDone() = true      |
- * | isCancelled() = false    |    |    |       cause() = non-null  |
- * |       cause() = null     |    |    +===========================+
- * +--------------------------+    |    | Completed by cancellation |
- *                                 |    +---------------------------+
- *                                 +---->      isDone() = true      |
- *                                      | isCancelled() = true      |
- *                                      +---------------------------+
+ *                                                  +-----------------------------------+
+ *                                                   | Completed successfully            |
+ *                                                   +-----------------------------------+
+ *                                                   +---->      isDone() = true              |
+ * +--------------------------+        |    |   isSuccess() = true              |
+ * |        Uncompleted         |        |     +========================+
+ * +--------------------------+        |    | Completed with failure         |
+ * |      isDone() = false       |        |    +-------------------------------+
+ * |   isSuccess() = false     |----+---->      isDone() = true               |
+ * | isCancelled() = false    |        |      |       cause() = non-null         |
+ * |       cause() = null          |        |      +=======================+
+ * +--------------------------+        |    | Completed by cancellation  |
+ *                                          |        +------------------------------------+
+ *                                           +---->      isDone() = true                       |
+ *                                                    | isCancelled() = true                   |
+ *                                                   +-------------------------------------+
  * </pre>
  *
  * Various methods are provided to let you check if the I/O operation has been

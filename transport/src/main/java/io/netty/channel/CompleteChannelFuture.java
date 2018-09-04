@@ -26,6 +26,7 @@ import io.netty.util.concurrent.GenericFutureListener;
  */
 abstract class CompleteChannelFuture extends CompleteFuture<Void> implements ChannelFuture {
 
+    // 关联的Channel对象
     private final Channel channel;
 
     /**
@@ -45,6 +46,7 @@ abstract class CompleteChannelFuture extends CompleteFuture<Void> implements Cha
     protected EventExecutor executor() {
         EventExecutor e = super.executor();
         if (e == null) {
+            // 返回注册到这个通道的EventLoop
             return channel().eventLoop();
         } else {
             return e;
