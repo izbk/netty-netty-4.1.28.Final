@@ -24,6 +24,7 @@ import java.nio.channels.WritableByteChannel;
 /**
  * A region of a file that is sent via a {@link Channel} which supports
  * <a href="http://en.wikipedia.org/wiki/Zero-copy">zero-copy file transfer</a>.
+ * 通过支持零拷贝文件传输的通道发送的文件区域
  *
  * <h3>Upgrade your JDK / JRE</h3>
  *
@@ -48,6 +49,8 @@ import java.nio.channels.WritableByteChannel;
  * transfer, sending a file with {@link FileRegion} might fail or yield worse
  * performance.  For example, sending a large file doesn't work well in Windows.
  *
+ * 如果您的操作系统(或JDK / JRE)不支持零拷贝文件传输，那么发送带有FileRegion的文件可能会失败或导致性能下降。
+ * 例如，发送一个大文件在Windows中不太好用。
  * <h3>Not all transports support it</h3>
  */
 public interface FileRegion extends ReferenceCounted {
